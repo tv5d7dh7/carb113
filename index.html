@@ -538,52 +538,49 @@
 </div>
 
 <script>
-    let copyResetTimeout;
+let copyResetTimeout;
+function copyCommand() {
+    const codeElement = document.getElementById('commandToCopy');
+    const button = document.getElementById('copyButton');
+    if (!codeElement || !button) return;
+    const commandText = codeElement.textContent.trim();
 
-    function copyCommand() {
-        const codeElement = document.getElementById('commandToCopy');
-        const button = document.getElementById('copyButton');
+    if (!button.getAttribute('data-original-text')) {
+        button.setAttribute('data-original-text', button.textContent);
+    }
+    const originalText = button.getAttribute('data-original-text') || 'Copy';
 
-        if (!codeElement || !button) return;
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = commandText;
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
 
-        const commandText = codeElement.textContent.trim();
+        const success = document.execCommand('copy');
+        document.body.removeChild(textarea);
 
-        const setCopiedState = () => {
+        if (success) {
             clearTimeout(copyResetTimeout);
-
-            if (!button.getAttribute('data-original-text')) {
-                button.setAttribute('data-original-text', button.textContent);
-            }
-
-            const originalText = button.getAttribute('data-original-text') || 'Copy';
-
             button.textContent = 'Command copied!';
             button.disabled = true;
-
             copyResetTimeout = setTimeout(() => {
                 button.textContent = originalText;
                 button.disabled = false;
             }, 4000);
-        };
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(commandText).then(setCopiedState).catch(setCopiedState);
         } else {
-            const textarea = document.createElement('textarea');
-            textarea.value = commandText;
-            textarea.style.position = 'fixed';
-            textarea.style.top = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.select();
-
-            try {
-                document.execCommand('copy');
-            } catch (e) {}
-
-            document.body.removeChild(textarea);
-            setCopiedState();
+            button.textContent = 'Error';
+            setTimeout(() => { button.textContent = originalText; }, 2000);
         }
+    } catch (e) {
+        console.error('Failed to copy: ', e);
+        button.textContent = 'Error';
+        setTimeout(() => { button.textContent = originalText; }, 2000);
     }
+}
 </script>
 </body>
 </html>
+
